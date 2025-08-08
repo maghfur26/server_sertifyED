@@ -4,11 +4,11 @@ import authService from "../services/authService";
 import type { CustomRequest } from "../types/customRequest";
 
 const authController = {
-  register: async (req: Request, res: Response): Promise<void> => {
+  registerUser: async (req: Request, res: Response): Promise<void> => {
     try {
-      const { institutionName, email, password, address } = req.body;
+      const { fullname, email, password, address } = req.body;
 
-      await authService.registerUser({ institutionName, email, password, address });
+      await authService.registerUser({ fullname, email, password, address });
 
       res.status(201).json({
         success: true,
@@ -17,6 +17,33 @@ const authController = {
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === "User already exists") {
+          res.status(400).json({
+            success: false,
+            message: error.message,
+          });
+          return;
+        }
+      }
+
+      res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
+    }
+  },
+  registerInstitution: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { institutionName, email, password, address } = req.body;
+
+      await authService.registerInstitution({ institutionName, email, password, address });
+
+      res.status(201).json({
+        success: true,
+        message: "Institution registered successfully",
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "Institution already exists") {
           res.status(400).json({
             success: false,
             message: error.message,
@@ -50,7 +77,7 @@ const authController = {
         message: "Login successful",
         data: {
           accessToken: loginResult.accessToken,
-          user: loginResult.user,
+          refreshToken: loginResult.refreshToken,
         },
       });
     } catch (error) {

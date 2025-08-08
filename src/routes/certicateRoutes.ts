@@ -1,0 +1,16 @@
+import { Router } from "express";
+import { upload } from "../config/multer.config";
+import { uploadCertificate, getCertificateByOwner, getVerificationDataById } from "../controllers/certificateController";
+
+const certificateRoute = Router();
+
+// get certificate from recipient
+certificateRoute.get("/", getCertificateByOwner);
+
+// get verification data by id
+certificateRoute.get("/:tokenId", getVerificationDataById);
+
+// create certificate from institution
+certificateRoute.post("/", upload.single("certificate"), uploadCertificate);
+
+export default certificateRoute;

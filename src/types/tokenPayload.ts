@@ -1,5 +1,7 @@
 export interface TokenPayload {
   id: string;
   email: string;
-  institutionName: string;
+  owner?: string;
+  role?: string;
+  walletAddress?: string;
 }

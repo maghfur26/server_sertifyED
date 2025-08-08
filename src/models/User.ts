@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
-import { IUser } from "../types/user";
+import { IUser } from "../types/userType";
 
 const UserSchema: Schema = new Schema<IUser>({
   name: {
@@ -26,15 +26,11 @@ const UserSchema: Schema = new Schema<IUser>({
     unique: true,
     sparse: true,
   },
-  ethereumAddress: {
+  walletAddress: {
     type: String,
     unique: true,
     sparse: true,
     lowercase: true,
-  },
-  isVerified: {
-    type: Boolean,
-    default: false,
   },
   date: {
     type: Date,
@@ -51,9 +47,7 @@ UserSchema.pre<IUser>("save", async function (next) {
   next();
 });
 
-UserSchema.methods.matchPassword = async function (
-  enteredPassword: string
-): Promise<boolean> {
+UserSchema.methods.matchPassword = async function (enteredPassword: string): Promise<boolean> {
   return await bcrypt.compare(enteredPassword, this.password as string);
 };
 

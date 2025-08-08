@@ -1,6 +1,11 @@
-export interface User {
+export interface IUser {
+  isModified(arg0: string): unknown;
   name: string;
   email: string;
   password: string;
-  mitra: string;
+  role: string;
+  mitra?: string;
+  institutionId: string;
+  walletAddress: string;
+  date: Date;
 }

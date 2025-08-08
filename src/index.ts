@@ -6,6 +6,7 @@ import authRoute from "./routes/authRoutes";
 import cookieParser from "cookie-parser";
 import path from "path";
 import uploadRoute from "./routes/fileRoutes";
+import certificateRoute from "./routes/certicateRoutes";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
 
@@ -38,29 +39,19 @@ dbconfig.connect();
 
 // Set up routes
 app.use("/api/upload", uploadRoute);
+app.use("/api/certificate", certificateRoute);
 app.use("/api/auth", authRoute);
 
 // Global Error Handler Multer
-app.use(
-  (
-    err: any,
-    _req: express.Request,
-    res: express.Response,
-    _next: express.NextFunction
-  ) => {
-    if (err.message.includes("Hanya file gambar")) {
-      return res.status(400).json({ message: err.message });
-    }
-    if (err.code === "LIMIT_FILE_SIZE") {
-      return res
-        .status(400)
-        .json({ message: "Ukuran file terlalu besar (max 2MB)" });
-    }
-    return res
-      .status(500)
-      .json({ message: "Internal Server Error", error: err.message });
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  if (err.message.includes("Hanya file gambar")) {
+    return res.status(400).json({ message: err.message });
   }
-);
+  if (err.code === "LIMIT_FILE_SIZE") {
+    return res.status(400).json({ message: "Ukuran file terlalu besar (max 2MB)" });
+  }
+  return res.status(500).json({ message: "Internal Server Error", error: err.message });
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

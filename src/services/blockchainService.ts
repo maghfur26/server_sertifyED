@@ -3,7 +3,6 @@ import { Contract, JsonRpcProvider, Wallet, Log, Interface } from "ethers";
 
 // ABI smart contract
 import SertifyEdABI from "../helper/SertifyEd.abi.json";
-import { createDataHash } from "../utils/hash";
 
 if (!process.env.SEPOLIA_RPC_URL || !process.env.MINTER_PRIVATE_KEY || !process.env.CONTRACT_ADDRESS) {
   throw new Error("Variabel lingkungan PROVIDER_URL, MINTER_PRIVATE_KEY, dan CONTRACT_ADDRESS harus diatur.");

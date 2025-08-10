@@ -4,11 +4,22 @@ import { getOnChainVerificationData, getTokenIdsByOwner, issueCertificateOnChain
 import { FileModel } from "../models/File";
 import CertificateModel from "../models/Certificate";
 import { createDataHash } from "../utils/hash";
+
+import { CustomRequest } from "../types/customRequest";
+// import sendCertidicateNotification from "../services/emailService";
+
 import sendCertidicateNotification from "../services/emailService";
 
-export async function uploadCertificate(req: Request, res: Response): Promise<void> {
-  const { studentName, courseTitle, issuerName, recipientWallet, certificateDescription, grade } = req.body;
+
+export async function uploadCertificate(req: CustomRequest, res: Response): Promise<void> {
+  const { studentName, studentEmail, courseTitle, issuerName, recipientWallet, certificateDescription, grade } = req.body;
   const file = req.file;
+  const userId = req.user?.id;
+
+  if (!userId) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
 
   if (!file) {
     res.status(400).json({ message: "No file uploaded" });
@@ -24,28 +35,25 @@ export async function uploadCertificate(req: Request, res: Response): Promise<vo
   // Simpan metadata file terlebih dahulu
   const uploadedFile = await FileModel.create({
     filename: file.filename,
-    path: file.path, // Simpan path lengkap untuk kemudahan penghapusan
+    path: file.path,
     mimetype: file.mimetype,
     size: file.size,
   });
 
   try {
-    // LANGKAH 1: Siapkan data lengkap untuk di-hash dan disimpan
-    const certificateFullData = {
+    // LANGKAH 1: Siapkan data yang akan disimpan dan di-hash
+    const certificateDataToStore = {
       studentName,
       courseTitle,
-      issueDate: new Date().toISOString(),
+      issueDate: new Date(),
       issuerName,
       recipientWallet,
-      certificateDescription: certificateDescription || null,
-      grade: grade || null,
-      // URL ini bisa digunakan oleh frontend untuk menampilkan gambar
-      visualAssetUrl: `/uploads/${file.filename}`,
+      certificateDescription: certificateDescription || undefined, // Set ke undefined jika kosong
+      grade: grade || undefined, // Set ke undefined jika kosong
     };
 
     // LANGKAH 2: Buat "Sidik Jari Digital" (dataHash)
-    const dataHash = createDataHash(certificateFullData);
-    console.log(`Data Hash Dibuat: ${dataHash}`);
+    const dataHash = createDataHash(certificateDataToStore);
 
     // LANGKAH 3: Terbitkan di Blockchain
     console.log(`Menerbitkan ke blockchain untuk wallet: ${recipientWallet}`);
@@ -53,13 +61,28 @@ export async function uploadCertificate(req: Request, res: Response): Promise<vo
     console.log(`Berhasil di-mint! Token ID: ${tokenId}, Tx Hash: ${transactionHash}`);
 
     // LANGKAH 4: Simpan bukti lengkap ke CertificateModel
-    await CertificateModel.create({
-      ...certificateFullData,
+    const datas = {
+      ...certificateDataToStore, // Gunakan data yang sudah disiapkan
       tokenId,
       transactionHash,
       dataHash,
-      fileId: uploadedFile.id, // Tautkan dengan file yang di-upload
-    });
+      file: uploadedFile._id,
+      organization: userId,
+    };
+    await CertificateModel.create(datas);
+
+    // const sendByEmail = await sendCertidicateNotification(
+    //   studentEmail,
+    //   studentName,
+    //   { courseTitle, issuerName, issueDate: new Date(), tokenId: tokenId, transactionHash: transactionHash },
+    //   `https://sepolia.etherscan.io/tx/${transactionHash}`
+    // );
+
+    // if (!sendByEmail) {
+    //   console.error("Gagal mengirim email");
+    //   res.status(500).json({ message: "Gagal mengirim email" });
+    //   return;
+    // }
 
     // LANGKAH 5: Kirim respons sukses
     res.status(201).json({
@@ -70,14 +93,30 @@ export async function uploadCertificate(req: Request, res: Response): Promise<vo
   } catch (error) {
     console.error("Error saat proses penerbitan sertifikat:", error);
 
-    // Jika terjadi error, lakukan rollback: hapus file fisik dan record dari database
-    // untuk menjaga konsistensi data.
+    // Rollback: hapus file fisik dan record dari database
     try {
       await fs.unlink(file.path);
-      await FileModel.deleteOne({ _id: uploadedFile.id });
+      await FileModel.deleteOne({ _id: uploadedFile._id });
       console.log(`Rollback berhasil: file ${file.filename} dan record DB telah dihapus.`);
     } catch (cleanupError) {
       console.error("Error saat melakukan cleanup (rollback):", cleanupError);
+    }
+
+    // Penanganan error yang lebih spesifik
+    if (error instanceof Error && error.name === "MongoServerError" && (error as any).code === 11000) {
+      res.status(409).json({
+        // 409 Conflict lebih cocok untuk duplikasi
+        message: "Gagal menerbitkan sertifikat: Data duplikat terdeteksi.",
+        error: "Duplicate key error.",
+        detail: (error as any).errmsg,
+      });
+    }
+
+    if (error instanceof Error && error.name === "ValidationError") {
+      res.status(400).json({
+        message: "Gagal menerbitkan sertifikat karena data tidak valid.",
+        error: error.message,
+      });
     }
 
     res.status(500).json({

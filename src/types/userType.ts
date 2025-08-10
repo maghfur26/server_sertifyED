@@ -4,8 +4,6 @@ export interface IUser {
   email: string;
   password: string;
   role: string;
-  mitra?: string;
-  institutionId: string;
   walletAddress: string;
-  date: Date;
+  sertificates: string[];
 }

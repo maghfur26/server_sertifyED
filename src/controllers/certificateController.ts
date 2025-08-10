@@ -4,8 +4,12 @@ import { getOnChainVerificationData, getTokenIdsByOwner, issueCertificateOnChain
 import { FileModel } from "../models/File";
 import CertificateModel from "../models/Certificate";
 import { createDataHash } from "../utils/hash";
+
 import { CustomRequest } from "../types/customRequest";
 // import sendCertidicateNotification from "../services/emailService";
+
+import sendCertidicateNotification from "../services/emailService";
+
 
 export async function uploadCertificate(req: CustomRequest, res: Response): Promise<void> {
   const { studentName, studentEmail, courseTitle, issuerName, recipientWallet, certificateDescription, grade } = req.body;

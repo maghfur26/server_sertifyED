@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { upload } from "../config/multer.config";
 import {
-  uploadSingleFile,
-  uploadMultipleFiles,
+  uploadSingleFile
+  // uploadMultipleFiles,
 } from "../controllers/fileController";
 
 const uploadRoute = Router();

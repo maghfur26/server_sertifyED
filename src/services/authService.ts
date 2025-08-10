@@ -1,6 +1,6 @@
 // services/authService.ts
 import bcrypt from "bcrypt";
-import Organization from "../models/Organization";
+import Institution from "../models/Insitution";
 import { generateToken, verifyToken } from "../utils/jwtUtils";
 import { TokenPayload } from "../types/tokenPayload";
 import type { RegisterUserData, LoginUserData, LoginResult, RegisterInstitutionData } from "../types/authType";
@@ -9,18 +9,19 @@ import User from "../models/User";
 class AuthService {
   // register user as recipient
   async registerUser(userData: RegisterUserData): Promise<void> {
-    const { fullname, email, password, address } = userData;
+    const { name, email, password, address, role, walletAddress } = userData;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw new Error("User already exists");
     }
     const newUser = new User({
-      name: fullname,
+      name,
       email,
       password,
-      role: "student",
-      walletAddress: address,
+      address,
+      role,
+      walletAddress,
     });
     await newUser.save();
   }
@@ -29,14 +30,14 @@ class AuthService {
   async registerInstitution(userData: RegisterInstitutionData): Promise<void> {
     const { institutionName, email, password, address } = userData;
 
-    const existingUser = await Organization.findOne({ email });
+    const existingUser = await Institution.findOne({ email });
     if (existingUser) {
       throw new Error("User already exists");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new Organization({
+    const newUser = new Institution({
       institutionName,
       email,
       password: hashedPassword,
@@ -54,25 +55,25 @@ class AuthService {
       let accessToken: string, refreshToken: string;
 
       // Check if the uer is a student or an issuer
-      const issuer = await Organization.findOne({ email });
+      const issuer = await Institution.findOne({ email });
 
       if (!issuer) {
-        const m = await User.findOne({ email });
+        const user = await User.findOne({ email });
 
-        if (!m) {
+        if (!user) {
           throw new Error("User not found");
         }
-        const isPasswordValid = await bcrypt.compare(password, m?.password as string);
+        const isPasswordValid = await bcrypt.compare(password, user?.password as string);
 
         if (!isPasswordValid) {
           throw new Error("Invalid credentials");
         }
         // If the user is a student, create a payload with user details
         payload = {
-          id: m?._id.toString() as string,
-          email: m?.email as string,
-          owner: m?.name,
-          walletAddress: m?.walletAddress,
+          id: user?._id.toString() as string,
+          email: user?.email as string,
+          owner: user?.name,
+          walletAddress: user?.walletAddress,
           role: "student",
         };
 
@@ -90,10 +91,10 @@ class AuthService {
         }
         // Generate tokens for the issuer
         payload = {
-          email: issuer.email,
-          id: issuer._id.toString(),
-          owner: issuer.institutionName,
-          walletAddress: issuer.address,
+          email: issuer.email as string,
+          id: issuer._id as string,
+          owner: issuer.institutionName as string,
+          walletAddress: issuer.address as string,
           role: "issuer",
         };
         // Generate access and refresh tokens
@@ -101,7 +102,7 @@ class AuthService {
         refreshToken = generateToken(payload, "refresh");
 
         // Update the issuer's refresh token in the database
-        await Organization.updateOne({ _id: payload.id }, { refreshToken });
+        await Institution.updateOne({ _id: payload.id }, { refreshToken });
       }
 
       return {
@@ -125,19 +126,19 @@ class AuthService {
   }
 
   async getUserByEmail(email: string) {
-    return await Organization.findOne({ email });
+    return await Institution.findOne({ email });
   }
 
   async getUserById(id: string) {
-    return await Organization.findById(id);
+    return await Institution.findById(id);
   }
 
   async updateRefreshToken(userId: string, refreshToken: string): Promise<void> {
-    await Organization.updateOne({ _id: userId }, { refreshToken });
+    await Institution.updateOne({ _id: userId }, { refreshToken });
   }
 
   async logout(userId: string): Promise<void> {
-    await Organization.updateOne({ _id: userId }, { $unset: { refreshToken: 1 } });
+    await Institution.updateOne({ _id: userId }, { $unset: { refreshToken: 1 } });
   }
 }
 

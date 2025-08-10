@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-let transport;
+let transport : nodemailer.Transporter;
 
 const initializeEmailService = () => {
   const emailUser = process.env.EMAIL_USER;

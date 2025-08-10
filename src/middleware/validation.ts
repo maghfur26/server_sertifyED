@@ -2,12 +2,13 @@ import { Request, Response, NextFunction } from "express";
 import Joi from "joi";
 
 const registerUserSchema = Joi.object({
-  fullname: Joi.string().min(2).max(50).required(),
+  name: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
   address: Joi.string().required(),
   password: Joi.string().min(6).required(),
-  mitra: Joi.string().optional(),
+  role: Joi.string().optional(),
 });
+
 const registerInstitutionSchema = Joi.object({
   institutionName: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),

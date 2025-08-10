@@ -6,9 +6,9 @@ import type { CustomRequest } from "../types/customRequest";
 const authController = {
   registerUser: async (req: Request, res: Response): Promise<void> => {
     try {
-      const { fullname, email, password, address } = req.body;
+      const { name, email, password, address, role, walletAddress } = req.body;
 
-      await authService.registerUser({ fullname, email, password, address });
+      await authService.registerUser({ name, email, password, address, role, walletAddress });
 
       res.status(201).json({
         success: true,

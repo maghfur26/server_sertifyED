@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-const organizationSchema = new mongoose.Schema({
+const InstitutionSchema: Schema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
@@ -35,6 +35,6 @@ const organizationSchema = new mongoose.Schema({
   },
 });
 
-const Organization = mongoose.model("Organization", organizationSchema);
+const Institution = mongoose.model("Insitution", InstitutionSchema);
 
-export default Organization;
+export default Institution;

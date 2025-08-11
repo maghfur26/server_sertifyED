@@ -6,7 +6,7 @@ import protectRoute from "../middleware/protectRoute";
 const certificateRoute = Router();
 
 // get certificate from recipient
-certificateRoute.get("/", getCertificateByOwner);
+certificateRoute.get("/:walletAddress", getCertificateByOwner);
 
 // get verification data by id
 certificateRoute.get("/:tokenId", getVerificationDataById);

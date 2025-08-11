@@ -9,6 +9,8 @@ import uploadRoute from "./routes/fileRoutes";
 import certificateRoute from "./routes/certicateRoutes";
 import rateLimit from "express-rate-limit";
 import cors from "cors";
+import YAML from "yamljs";
+import swaggerUi from "swagger-ui-express";
 
 const app = express();
 
@@ -37,10 +39,20 @@ app.use(express.urlencoded({ extended: true, limit: "2mb" })); // Limit URL-enco
 
 dbconfig.connect();
 
+const swaggerDocument = YAML.load(path.join(__dirname, "./docs/swagger.yaml"));
+
+// Buat route untuk dokumentasi API
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 // Set up routes
 app.use("/api/upload", uploadRoute);
 app.use("/api/certificate", certificateRoute);
 app.use("/api/auth", authRoute);
+
+// testing api
+app.get("/", (req: express.Request, res: express.Response) => {
+  res.send("Hello World!");
+});
 
 // Global Error Handler Multer
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

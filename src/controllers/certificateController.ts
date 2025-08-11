@@ -6,15 +6,17 @@ import CertificateModel from "../models/Certificate";
 import { createDataHash } from "../utils/hash";
 
 import { CustomRequest } from "../types/customRequest";
-// import sendCertidicateNotification from "../services/emailService";
-
-import sendCertidicateNotification from "../services/emailService";
-
+import { sendEmail } from "../services/emailService";
 
 export async function uploadCertificate(req: CustomRequest, res: Response): Promise<void> {
   const { studentName, studentEmail, courseTitle, issuerName, recipientWallet, certificateDescription, grade } = req.body;
   const file = req.file;
   const userId = req.user?.id;
+
+  if (!userId || !studentName || !studentEmail || !courseTitle || !issuerName || !recipientWallet || !certificateDescription || !grade) {
+    res.status(400).json({ message: "Missing required fields" });
+    return;
+  }
 
   if (!userId) {
     res.status(401).json({ message: "Unauthorized" });
@@ -71,18 +73,20 @@ export async function uploadCertificate(req: CustomRequest, res: Response): Prom
     };
     await CertificateModel.create(datas);
 
-    // const sendByEmail = await sendCertidicateNotification(
-    //   studentEmail,
-    //   studentName,
-    //   { courseTitle, issuerName, issueDate: new Date(), tokenId: tokenId, transactionHash: transactionHash },
-    //   `https://sepolia.etherscan.io/tx/${transactionHash}`
-    // );
+    const sendByEmail = await sendEmail(studentEmail, studentName, {
+      courseTitle,
+      issuerName,
+      issueDate: new Date(),
+      tokenId: tokenId,
+      transactionHash: transactionHash,
+      verifyUrl: `https://sepolia.etherscan.io/tx/${transactionHash}`,
+    });
 
-    // if (!sendByEmail) {
-    //   console.error("Gagal mengirim email");
-    //   res.status(500).json({ message: "Gagal mengirim email" });
-    //   return;
-    // }
+    if (!sendByEmail) {
+      console.error("Gagal mengirim email");
+      res.status(500).json({ message: "Gagal mengirim email" });
+      return;
+    }
 
     // LANGKAH 5: Kirim respons sukses
     res.status(201).json({

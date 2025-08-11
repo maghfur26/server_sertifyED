@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { FileModel } from "../models/File";
-import Mitra from "../models/Organization";
+import Mitra from "../models/Insitution";
 
 export const uploadSingleFile = async (req: Request, res: Response) => {
   try {

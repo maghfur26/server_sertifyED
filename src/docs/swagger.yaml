@@ -16,8 +16,6 @@ tags:
     description: "Endpoint untuk Autentikasi dan Manajemen Pengguna"
   - name: "Certificate"
     description: "Endpoint untuk Menerbitkan dan Memverifikasi Sertifikat"
-  - name: "File"
-    description: "Endpoint untuk Mengakses File Statis"
 
 paths:
   /auth/register/institution:
@@ -97,24 +95,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorMessage"
-
-  /auth/me:
-    get:
+  /auth/logout:
+    post:
       tags:
         - "Auth"
-      summary: "Dapatkan Profil Pengguna"
-      description: "Mengambil detail profil dari pengguna yang sedang login berdasarkan token."
+      summary: "Logout Pengguna"
+      description: "Logout untuk institusi atau siswa."
       security:
         - bearerAuth: []
       responses:
         "200":
-          description: "Profil pengguna berhasil diambil."
+          description: "Logout berhasil."
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserProfile"
+                $ref: "#/components/schemas/SuccessMessage"
         "401":
           description: "Tidak terautentikasi."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
 
   /certificate:
     post:
@@ -193,8 +194,8 @@ paths:
         "404":
           description: "Sertifikat tidak ditemukan."
 
-  /certificate/owner:
-    post:
+  /certificate/user:
+    get:
       tags:
         - "Certificate"
       summary: "Dapatkan Sertifikat Milik Pengguna"
@@ -226,29 +227,6 @@ paths:
                       $ref: "#/components/schemas/Certificate"
         "404":
           description: "Sertifikat tidak ditemukan untuk alamat tersebut."
-
-  /uploads/{filename}:
-    get:
-      tags:
-        - "File"
-      summary: "Akses File Sertifikat"
-      description: "Menampilkan file gambar/PDF dari sertifikat yang telah diunggah."
-      parameters:
-        - name: "filename"
-          in: "path"
-          required: true
-          description: "Nama file yang didapat dari record sertifikat."
-          schema:
-            type: string
-      responses:
-        "200":
-          description: "File berhasil ditampilkan."
-          content:
-            image/png: {}
-            image/jpeg: {}
-            application/pdf: {}
-        "404":
-          description: "File tidak ditemukan."
 
 components:
   securitySchemes:

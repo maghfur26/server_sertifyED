@@ -1,4 +1,3 @@
-// src/services/blockchain.service.ts
 import { Contract, JsonRpcProvider, Wallet, Log, Interface } from "ethers";
 
 // ABI smart contract
@@ -11,7 +10,6 @@ if (!process.env.SEPOLIA_RPC_URL || !process.env.MINTER_PRIVATE_KEY || !process.
 const provider: JsonRpcProvider = new JsonRpcProvider(process.env.SEPOLIA_RPC_URL);
 const signer: Wallet = new Wallet(process.env.MINTER_PRIVATE_KEY, provider);
 
-// Berikan tipe 'Contract' pada instance kontrak kita
 const sertifyEdContract: Contract = new Contract(process.env.CONTRACT_ADDRESS, SertifyEdABI, signer);
 
 console.log(`Blockchain service terhubung ke contract di alamat: ${process.env.CONTRACT_ADDRESS}`);
@@ -89,10 +87,7 @@ export const getOnChainVerificationData = async (tokenId: number): Promise<{ iss
 export const getTokenIdsByOwner = async (ownerAddress: string): Promise<bigint[]> => {
   try {
     const contractReader = sertifyEdContract.connect(provider) as Contract;
-    // =================================================================
-    // PERBAIKAN DI SINI: Memanggil fungsi yang benar
     const tokenIdsBigInt: bigint[] = await contractReader.getCertificatesByOwner(ownerAddress);
-    // =================================================================
     return tokenIdsBigInt;
   } catch (error) {
     console.error(`Error mengambil token untuk owner ${ownerAddress}:`, error);
@@ -100,7 +95,6 @@ export const getTokenIdsByOwner = async (ownerAddress: string): Promise<bigint[]
   }
 };
 
-// Ekspor sebagai objek agar sesuai dengan `require` di file controller JS
 module.exports = {
   issueCertificateOnChain,
   getOnChainVerificationData,

@@ -4,7 +4,6 @@ import { getOnChainVerificationData, getTokenIdsByOwner, issueCertificateOnChain
 import { FileModel } from "../models/File";
 import CertificateModel from "../models/Certificate";
 import { createDataHash } from "../utils/hash";
-
 import { CustomRequest } from "../types/customRequest";
 import { sendEmail } from "../services/emailService";
 
@@ -131,6 +130,7 @@ export async function uploadCertificate(req: CustomRequest, res: Response): Prom
 }
 
 export async function getVerificationDataById(req: Request, res: Response): Promise<void> {
+  console.log("\n1. Mengambil data sertifikat... By ID");
   const { tokenId } = req.params;
 
   try {
@@ -171,6 +171,7 @@ export async function getVerificationDataById(req: Request, res: Response): Prom
 }
 
 export async function getCertificateByOwner(req: Request, res: Response): Promise<void> {
+  console.log("\n1. Mengambil data sertifikat... By Owner");
   const { walletAddress } = req.body;
 
   try {

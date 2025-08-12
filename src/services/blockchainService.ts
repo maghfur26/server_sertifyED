@@ -91,7 +91,7 @@ export const getTokenIdsByOwner = async (ownerAddress: string): Promise<bigint[]
     const contractReader = sertifyEdContract.connect(provider) as Contract;
     // =================================================================
     // PERBAIKAN DI SINI: Memanggil fungsi yang benar
-    const tokenIdsBigInt: bigint[] = await contractReader.getCertificateIdsByOwner(ownerAddress);
+    const tokenIdsBigInt: bigint[] = await contractReader.getCertificatesByOwner(ownerAddress);
     // =================================================================
     return tokenIdsBigInt;
   } catch (error) {
